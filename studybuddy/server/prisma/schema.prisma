@@ -1,0 +1,74 @@
+generator client {
+	provider = "prisma-client-js"
+}
+
+datasource db {
+	provider = "postgresql"
+	url      = env("DATABASE_URL")
+}
+
+model User {
+	id        String   @id @default(uuid())
+	email     String   @unique
+	password  String
+	name      String
+	role      String   @default("student")
+	createdAt DateTime @default(now())
+	updatedAt DateTime @updatedAt
+	attempts  Attempt[]
+	topics    TopicStat[]
+}
+
+model Quiz {
+	id        String    @id @default(uuid())
+	title     String
+	subject   String
+	topic     String
+	questions Json
+	createdAt DateTime  @default(now())
+	attempts  Attempt[]
+}
+
+model Attempt {
+	id            String   @id @default(uuid())
+	userId        String
+	quizId        String
+	score         Int
+	responses     Json
+	explanations  Explanation[]
+	createdAt     DateTime @default(now())
+	user          User     @relation(fields: [userId], references: [id])
+	quiz          Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model Explanation {
+	id         String   @id @default(uuid())
+	attemptId  String
+	questionId String
+	text       String
+	worked     String
+	createdAt  DateTime @default(now())
+	attempt    Attempt  @relation(fields: [attemptId], references: [id])
+}
+
+model TopicStat {
+	id        String   @id @default(uuid())
+	userId    String
+	subject   String
+	topic     String
+	correct   Int      @default(0)
+	incorrect Int      @default(0)
+	streak    Int      @default(0)
+	updatedAt DateTime @updatedAt
+	user      User     @relation(fields: [userId], references: [id])
+	@@unique([userId, subject, topic])
+}
+
+model CareerAssessment {
+	id        String   @id @default(uuid())
+	userId    String
+	results   Json
+	recommendations Json
+	createdAt DateTime @default(now())
+	user      User     @relation(fields: [userId], references: [id])
+}
